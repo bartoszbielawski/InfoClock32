@@ -1,9 +1,22 @@
 #include <Arduino.h>
+#include <webServer.h>
+#include <SPIFFS.h>
+
+void configureWifi();
 
 void setup() {
-    // put your setup code here, to run once:
+    Serial.begin(115200);
+    SPIFFS.begin();
+    configureWifi();
+    configureWebServer();
+    Serial.println("Init done!");
+    
 }
 
-void loop() {
-    // put your main code here, to run repeatedly:
+int i = 0;
+
+void loop() 
+{
+    Serial.printf("%d\n", i++);
+    delayMicroseconds(1000000);
 }
