@@ -1,0 +1,3 @@
+#Lines beginning with a # sign are comments
+
+timezone = 7200

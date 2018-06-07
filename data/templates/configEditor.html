@@ -1,0 +1,18 @@
+<!doctype html>
+
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Online Configuration Editor</title>
+  <link rel="stylesheet" href="static_files/styles.css">
+</head>
+
+<body>
+  <h1>Online Configuration Editor</h1>
+  <span>Please enter data in key=value format, lines beginning with # will be treated as comments.</span>
+  <form action="/configSave" method="POST">
+      <textarea cols="80" rows="20" autofocus="true" name="content">%configFileContents%</textarea><br>
+      <input type="submit" value="Save"/>
+  </form>
+</body>
+</html>
