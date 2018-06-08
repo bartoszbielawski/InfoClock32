@@ -6,6 +6,8 @@
 #include <DNSServer.h>
 
 #include <Esp.h>
+#include <config_utils.h>
+#include <utils.h>
 
 AsyncWebServer webServer(80);
 DNSServer dnsServer;
@@ -15,17 +17,27 @@ AsyncWebServer& getWebServer()
     return webServer;
 }
 
+
+static void authenticate(AsyncWebServerRequest* request)
+{
+    if (not request->authenticate("user", getConfigValue("userPassword", "password").c_str()))
+    {
+        request->requestAuthentication();
+    }
+}
+
 void handleRoot(AsyncWebServerRequest *request)
 {
-    request->send(SPIFFS, "/templates/index.html", String(), false);
+    request->send(SPIFFS, "/templates/index.html", String(), false, [](const String& key) 
+    {
+        return getConfigValue(key, "1.0.0");
+    }
+    );
 }
 
 void handleConfigEditor(AsyncWebServerRequest* request)
 {
-    if (not request->authenticate("admin", "admin"))
-    {
-        request->requestAuthentication();
-    }
+    authenticate(request);
    
     auto file = SPIFFS.open("/config.txt", "r");
     auto contents = file.readString();
@@ -39,11 +51,8 @@ void handleConfigEditor(AsyncWebServerRequest* request)
 
 void handleConfigSave(AsyncWebServerRequest* request)
 {
-    if (not request->authenticate("admin", "admin"))
-    {
-        request->requestAuthentication();
-    }
-
+    authenticate(request);
+    
     if (!request->hasArg(F("content")))
         request->redirect("/");
 
@@ -53,14 +62,12 @@ void handleConfigSave(AsyncWebServerRequest* request)
     file.print(content);
     file.close();
 
-    Serial.println(content);
-
     request->redirect("/");
 }
 
 void configureWebServer()
 {
-    Serial.println("Configuring server...");
+    logPrintf("WebServer config - start");
     webServer.onNotFound(
          [](AsyncWebServerRequest *request)
          {
@@ -72,6 +79,6 @@ void configureWebServer()
     webServer.on("/configEditor", handleConfigEditor);
     webServer.on("/configSave", handleConfigSave);
     webServer.begin();
-    Serial.println("Done...");
+    logPrintf("WebServer config - done...");
 }
 

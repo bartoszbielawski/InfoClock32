@@ -4,6 +4,6 @@
 #include <Arduino.h>
 
 void readConfigFromFS();
-const String& readConfig(const String& name, const String& dflt);
+const String& getConfigValue(const String& name, const String& dflt);
 
 #endif //CONFIG_UTILS_H
