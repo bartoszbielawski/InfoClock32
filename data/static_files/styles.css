@@ -1,7 +1,5 @@
-
-
-h1 
-{
-    font-size: 150%;
-    color: navy;
-}
+h1 {color: navy;}
+h2 {color: darkgreen;}
+h3 {color: darkred;}
+#h  {font-weight: bold;}
+#i  {font-style: italic;}

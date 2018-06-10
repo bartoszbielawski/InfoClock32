@@ -1,8 +1,14 @@
 #include "utils.h"
 #include <time.h>
+#include <config_utils.h>
+#include <rtos_utils.h>
+//TODO: add mutex locking for the logging
+
+static Semaphore loggingSemaphore;
 
 void logPrintf(const char* fmt,...)
 {
+    SemaphoreLocker<Semaphore> locker(loggingSemaphore);
     char localBuffer[128];
     va_list args;
     va_start (args, fmt);
@@ -17,6 +23,7 @@ void logPrintf(const char* fmt,...)
 
 void logPrintf(const __FlashStringHelper* fmt, ...)
 {
+    SemaphoreLocker<Semaphore> locker(loggingSemaphore);
     char localBuffer[128];
     va_list args;
     va_start (args, fmt);
@@ -30,7 +37,7 @@ void logPrintf(const __FlashStringHelper* fmt, ...)
 }
 
 
-static char dateTimeString[22];
+static char dateTimeString[22] = "1970-01-01 00:00:01";
 
 static time_t startTime = 0;
 
@@ -84,4 +91,23 @@ const char* getUpTime()
     snprintf(upTimeString, sizeof(upTimeString), "%dd %02dh %02dm %02ds", days, hours, minutes, seconds);
 
     return upTimeString;
+}
+
+const String questionMarks = "???";
+
+StringLookup generateMapLookup(const std::map<String, String>& m, bool enableConfig)
+{
+    StringLookup lookup = [&](const String& key) -> const String&
+    {
+        auto i = m.find(key);
+        if (i != m.end())
+            return i->second;
+
+        if (enableConfig)
+            return getConfigValue(key, questionMarks);
+
+        return questionMarks;
+    };
+
+    return lookup;
 }

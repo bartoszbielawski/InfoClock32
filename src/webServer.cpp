@@ -41,9 +41,6 @@ void handleConfigEditor(AsyncWebServerRequest* request)
    
     auto file = SPIFFS.open("/config.txt", "r");
     auto contents = file.readString();
-
-    Serial.println(contents);
-
     file.close();
 
     request->send(SPIFFS, "/templates/configEditor.html", "text/html", false, [&contents](const String& k) {return contents;});
@@ -61,6 +58,7 @@ void handleConfigSave(AsyncWebServerRequest* request)
     auto file = SPIFFS.open("/config.txt", "w");
     file.print(content);
     file.close();
+    readConfigFromFS(); //reload configuration
 
     request->redirect("/");
 }
@@ -81,4 +79,5 @@ void configureWebServer()
     webServer.begin();
     logPrintf("WebServer config - done...");
 }
+
 

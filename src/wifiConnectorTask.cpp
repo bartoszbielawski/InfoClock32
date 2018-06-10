@@ -2,23 +2,25 @@
 #include <ESPAsyncWiFiManager.h>
 
 #include "webServer.h"
+#include <utils.h>
 
 void WiFiEvent(WiFiEvent_t event, system_event_info_t info){
     switch(event)
     {
         case SYSTEM_EVENT_STA_START:
-            Serial.println("Station Mode Started");
+            logPrintf(F("Station Mode Started"));
             break;
         case SYSTEM_EVENT_STA_GOT_IP:
-            Serial.println("Connected to " + String(WiFi.SSID()));
-            Serial.printf("Got IP: %s\n", WiFi.localIP().toString().c_str());
+            logPrintf(F("Connected to %s with %s"), 
+                WiFi.SSID().c_str(),
+                WiFi.localIP().toString().c_str());
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
-            Serial.println("Disconnected from station, attempting reconnection");
+            logPrintf(F("Disconnected from station, attempting reconnection"));
             WiFi.reconnect();
             break;
         default:
-            Serial.printf("Something else... %d\n", (int)event);
+            logPrintf("Other WiFi event (%d)", (int)event);
             break;
     }
 }

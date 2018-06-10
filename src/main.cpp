@@ -22,7 +22,7 @@ void setup() {
     configureWebServer();
     logPrintf(F("Init done!"));
 
-    xTaskCreate(lhcStatusTask, "LHCTask", 2048, NULL, 5, NULL);
+    xTaskCreate(lhcStatusTask, "LHCTask", 4096, NULL, 5, NULL);
 }
 
 void loop() 

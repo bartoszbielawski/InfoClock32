@@ -1,3 +1,4 @@
 #Lines beginning with a # sign are comments
 timezone=7200
 userPassword=password
+lhc.enabled=1

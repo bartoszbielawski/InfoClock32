@@ -3,49 +3,99 @@
 #include <HTTPClient.h>
 #include "utils.h"
 #include "lhcTask.h"
+#include <config_utils.h>
+#include <webServer.h>
+#include <ESPAsyncWebServer.h>
+#include <SPIFFS.h>
+#include <rtos_utils.h>
 
 static const char pageUrl[] PROGMEM = "http://alicedcs.web.cern.ch/AliceDCS/monitoring/screenshots/rss.xml";
 
-String page1Comment;
-String beamEnergy;
-String beamMode;
+static Semaphore lhcStatusSemaphore;
 
-String getPage1Comment()
+struct LHCState
 {
-    if (beamMode.length() && (not page1Comment.length()))
-        return beamMode;
-    if (not (beamMode.length() && page1Comment.length()))
-        return "No Page1 Comment";
-    String m(beamMode);
-    m += ": ";
-    m += page1Comment;
-    return m;
-}
+    LHCState() {clear();}
+    
+    String combinedPage1Comment;
+    String energy;
+    String lastUpdate;
 
-String getBeamEnergy()
-{
-    if (not beamEnergy.length())
-        return "Energy: ???";
-    String s("Energy: ");
-    s += beamEnergy;
-    return s;
-}
-
-String readFullLine(Stream& s)
-{
-    String result;
-    while (not result.endsWith("</title>"))
+    void clear()
     {
-        result += s.readStringUntil('\n');
+        SemaphoreLocker<Semaphore> locker(lhcStatusSemaphore);
+        combinedPage1Comment = F("No Page1 comment...");
+        energy = F("Unknown");
+        lastUpdate = getDateTime();
     }
 
-    return result;
-}
+    LHCState getCopy()
+    {
+        SemaphoreLocker<Semaphore> locker(lhcStatusSemaphore);
+        return *this;
+    }
+};
 
+LHCState lhcState;
+
+// String getPage1Comment()
+// {
+//     SemaphoreLocker locker(lhcStatusSemaphore);
+//     return lhcState.combinedPage1Comment;
+//     
+// }
+
+// String getBeamEnergy()
+// {
+//     SemaphoreLocker locker(lhcStatusSemaphore);
+//     return lhcState.energy;
+//     if (not beamEnergy.length())
+//         return "Energy: ???";
+//     String s("Energy: ");
+//     s += beamEnergy;
+//     return s;
+// }
+
+// String readFullLine(Stream& s)
+// {
+//     String result;
+//     while (not result.endsWith("</title>"))
+//     {
+//         result += s.readStringUntil('\n');
+//     }
+
+//     return result;
+// }
+
+
+void lhcHandleRequest(AsyncWebServerRequest *request)
+{
+   auto localCopy = lhcState.getCopy();
+
+    const std::map<String,String> m = {
+        {"p1comment", localCopy.combinedPage1Comment},
+        {"energy", localCopy.energy},
+        {"updated", localCopy.lastUpdate}
+    };
+
+    request->send(SPIFFS, "/templates/lhcStatus.html", "text/html", false, generateMapLookup(m, true));
+}
 
 void lhcStatusTask(void*)
 {
+    bool enabled = getConfigValue("lhc.enabled", "0").toInt();
+    if (!enabled)
+    {
+        logPrintf("LHC Task disabled, exiting...");
+        vTaskDelete(NULL);
+        return;
+    }
+
     logPrintf("LHC Status Task Starting!");
+
+    auto webServer = getWebServer();
+    webServer.on("/lhcStatus", &lhcHandleRequest);
+
     while (true)
     {
         HTTPClient httpClient;
@@ -57,32 +107,32 @@ void lhcStatusTask(void*)
         if (httpCode != HTTP_CODE_OK)
         {
             logPrintf("Couldn't get URL: %d\n", httpCode);
-            delay(5000);
+            lhcState.clear();
+            delay(60000);
             continue;
         }
 
 	    auto httpStream = httpClient.getStream();
 
+        LHCState newLHCState;
+        String beamMode;
+
         while (httpStream.available())
         {
-            bool found = httpStream.findUntil("<title>","</rss>");
-
+            httpStream.findUntil("<title>","</rss>");
             auto title = httpStream.readStringUntil(':');
             if (title == F("LhcPage1"))
             {
-                String newPage1Comment = httpStream.readStringUntil('<');
+                String& newPage1Comment = newLHCState.combinedPage1Comment;
+                newPage1Comment = httpStream.readStringUntil('<');
                 newPage1Comment.trim();
                 newPage1Comment.replace(F("\n\n"), F("\n"));
-                if (newPage1Comment != page1Comment)
-                {
-                    page1Comment = newPage1Comment;
-                }
             }
 
             if (title == F("BeamEnergy"))
             {
-                beamEnergy = httpStream.readStringUntil('<');
-                beamEnergy.trim();
+                newLHCState.energy = httpStream.readStringUntil('<');
+                newLHCState.energy.trim();
             }
 
             if (title == F("LhcBeamMode"))
@@ -92,7 +142,12 @@ void lhcStatusTask(void*)
             }
         }
 
-        logPrintf("%s - %s", getBeamEnergy().c_str(), getPage1Comment().c_str());
+        {
+            newLHCState.combinedPage1Comment = beamMode + ": " +  newLHCState.combinedPage1Comment;
+            SemaphoreLocker<Semaphore> locker(lhcStatusSemaphore);
+            lhcState = newLHCState;
+        }
+
         delay(60000);
     }
 }
