@@ -6,23 +6,22 @@
 
 void configureWifi();
 void lhcStatusTask(void*);
-
+void owmTask(void*);
 
 void setup() {
     Serial.begin(115200);
     SPIFFS.begin();
-    logPrintf(F("Reading configuration values from the flash..."));
+    
     readConfigFromFS();
-    logPrintf(F("Running WiFi manager..."));
     configureWifi();
+
     int timeZoneOffset = getConfigValue("timezone", "0").toInt();
     configTime(timeZoneOffset, 0, "pool.ntp.org", "time.nist.gov", "ntp3.pl");
-
-    logPrintf(F("Starting webserver..."));
     configureWebServer();
-    logPrintf(F("Init done!"));
-
+    
+    logPrintf("Task creation...");
     xTaskCreate(lhcStatusTask, "LHCTask", 4096, NULL, 5, NULL);
+    xTaskCreate(owmTask, "OWM", 4096, NULL, 5, NULL);
 }
 
 void loop() 

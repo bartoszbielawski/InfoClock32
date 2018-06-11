@@ -38,6 +38,17 @@ struct LHCState
 
 LHCState lhcState;
 
+String getLHCStateDescription()
+{
+    LHCState localCopy = lhcState.getCopy();
+
+    String result = localCopy.combinedPage1Comment;
+    result += " -- ";
+    result += localCopy.energy;
+    return result;
+}
+
+
 // String getPage1Comment()
 // {
 //     SemaphoreLocker locker(lhcStatusSemaphore);
@@ -106,7 +117,7 @@ void lhcStatusTask(void*)
         int httpCode = httpClient.GET();
         if (httpCode != HTTP_CODE_OK)
         {
-            logPrintf("Couldn't get URL: %d\n", httpCode);
+            logPrintf("Couldn't get URL: %d", httpCode);
             lhcState.clear();
             delay(60000);
             continue;
@@ -147,6 +158,8 @@ void lhcStatusTask(void*)
             SemaphoreLocker<Semaphore> locker(lhcStatusSemaphore);
             lhcState = newLHCState;
         }
+
+        logPrintf("%s", getLHCStateDescription().c_str());
 
         delay(60000);
     }

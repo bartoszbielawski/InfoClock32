@@ -10,6 +10,7 @@ static std::map<String, String> configValues;
 
 void readConfigFromFS()
 {
+    logPrintf(F("Reading configuration values from the flash..."));
     //the FS has to be initialized already...
     auto file = SPIFFS.open("/config.txt", "r");
     if (!file)

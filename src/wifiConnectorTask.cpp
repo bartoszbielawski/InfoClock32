@@ -17,7 +17,7 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info){
             break;
         case SYSTEM_EVENT_STA_DISCONNECTED:
             logPrintf(F("Disconnected from station, attempting reconnection"));
-            WiFi.reconnect();
+            //WiFi.reconnect();
             break;
         default:
             logPrintf("Other WiFi event (%d)", (int)event);
@@ -29,6 +29,8 @@ void configureWifi()
 {
     delay(1000);
  
+    logPrintf(F("Running WiFi manager..."));
+
     WiFi.enableAP(false);
     WiFi.enableSTA(true);
     WiFi.setAutoConnect(true);
@@ -40,11 +42,16 @@ void configureWifi()
     AsyncWiFiManager wifiManager(&getWebServer(),&dnsServer);
 
     wifiManager.setBreakAfterConfig(true);
-    wifiManager.setConnectTimeout(15);
-    wifiManager.setConfigPortalTimeout(120);    //seconds
+    wifiManager.setConnectTimeout(120);
+    wifiManager.setConfigPortalTimeout(120) ;    //seconds
     wifiManager.setDebugOutput(false);
     //reset settings - for testing
     //wifiManager.resetSettings();
 
-    wifiManager.autoConnect();
+    if (not wifiManager.autoConnect())
+    {
+        logPrintf(F("Couldn't connect to WiFi, resetting..."));
+        sleep(5);
+        ESP.restart();
+    }
 }
