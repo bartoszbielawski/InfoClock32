@@ -45,6 +45,8 @@ void configureWifi()
     wifiManager.setConnectTimeout(120);
     wifiManager.setConfigPortalTimeout(120) ;    //seconds
     wifiManager.setDebugOutput(false);
+
+    logPrintf(F("MAC Address: %s"), WiFi.macAddress().c_str());
     //reset settings - for testing
     //wifiManager.resetSettings();
 

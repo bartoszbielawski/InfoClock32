@@ -98,48 +98,49 @@ std::vector<Weather> weathers;
 
 void owmTask(void*)
 {
-    weathers.clear();
-
-    String owmIds = getConfigValue("owm.ids", String());
-	String owmAPIKey = getConfigValue("owm.apikey", String());
-
-    if ((owmIds.length() == 0) or (owmAPIKey.length() == 0))
+    String owmAPIKey = getConfigValue("owm.apikey", String());
+    logPrintf(F("OWM: Starting..."));
     {
-        logPrintf("OWM not configured!");
-        sleep(5);
-        vTaskDelete(NULL);
-        return;
+        String owmIds = getConfigValue("owm.ids", String());   
+        if ((owmIds.length() == 0) or (owmAPIKey.length() == 0))
+        {
+            logPrintf("OWM not configured!");
+            sleep(5);
+            vTaskDelete(NULL);
+            return;
+        }
+        
+        //generate list of "weathers" to be checked
+        uint32_t from = 0;
+        int32_t to;
+
+        do
+        {
+            auto commaIndex = owmIds.indexOf(",", from);
+            to = commaIndex == -1 ? owmIds.length(): commaIndex;
+
+            String s = owmIds.substring(from, to);
+            logPrintf(F("OWM: Found ID: %s"), s.c_str());
+            from = to+1;
+            weathers.emplace_back(s.toInt());
+        }
+        while (from < owmIds.length());
+        logPrintf(F("OWM: Found %d IDs"), weathers.size());
     }
 
     getWebServer().on("/owmStatus", &owmHandleStatus);
 
-	//generate list of "weathers" to be checked
-	uint32_t from = 0;
-	int32_t to;
-
-	do
-	{
-		auto commaIndex = owmIds.indexOf(",", from);
-		to = commaIndex == -1 ? owmIds.length(): commaIndex;
-
-		String s = owmIds.substring(from, to);
-		logPrintf(F("OWM: Found ID: %s"), s.c_str());
-		from = to+1;
-		weathers.emplace_back(s.toInt());
-	}
-	while (from < owmIds.length());
-	logPrintf(F("OWM: Found %d IDs"), weathers.size());
-
     while (true)
     {
-        for (auto w: weathers)
+        HTTPClient httpClient;
+        httpClient.setReuse(true);
+        for (auto& w: weathers)
         {
             logPrintf(F("OWM: Reading weather for id = %d"), w.locationId);
 
             //locals needed for the rest of the code
             MapCollector mc(jsonPathFilter);
-            HTTPClient httpClient;
-            httpClient.setReuse(true);
+           
             char localBuffer[256];
             int code = 0;
 
@@ -185,7 +186,7 @@ void owmTask(void*)
         
             sleep(10);
         }
-        sleep(30);
+        sleep(600);
     }
 }
 
@@ -198,8 +199,8 @@ String getHTMLWeatherDescription()
 
     for (const auto& w: weathers)
     {
-        // if (w.location.length() == 0)
-        //     continue;
+        if (w.location.length() == 0)
+            continue;
 
         snprintf(buffer, sizeof(buffer), "<tr><td id='h'>%s</td><td id='i'>%s&deg;C (%s&deg;C, %s)</td></tr>",
             w.location.c_str(),
@@ -216,9 +217,6 @@ String getHTMLWeatherDescription()
 void owmHandleStatus(AsyncWebServerRequest *request)
 {
     String x = getHTMLWeatherDescription();
-
-    logPrintf("OWM: %s", x.c_str());
-
     request->send(SPIFFS, "/templates/owmStatus.html", "text/html", false,  [&](const String& k) {return x;});
 }
 

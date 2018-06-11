@@ -3,3 +3,6 @@ h2 {color: darkgreen;}
 h3 {color: darkred;}
 #h  {font-weight: bold;}
 #i  {font-style: italic;}
+a.button {text-align: center; display: block; font-size: 150%; color: #353; text-decoration: none; background-color: #DFD;
+    padding: 4px; border: 1px solid #383; border-radius: 10px; max-width: 400px}
+a.button:hover {background-color: #4d4;}
