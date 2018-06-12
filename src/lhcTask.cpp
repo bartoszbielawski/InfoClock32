@@ -95,15 +95,15 @@ void lhcHandleRequest(AsyncWebServerRequest *request)
 
 void lhcStatusTask(void*)
 {
+    logPrintf("LHC: Status Task Starting!");
+
     bool enabled = getConfigValue("lhc.enabled", "0").toInt();
     if (!enabled)
     {
-        logPrintf("LHC Task disabled, exiting...");
+        logPrintf("LHC: Task disabled, exiting...");
         vTaskDelete(NULL);
         return;
     }
-
-    logPrintf("LHC Status Task Starting!");
 
     auto webServer = getWebServer();
     webServer.on("/lhcStatus", &lhcHandleRequest);
@@ -113,12 +113,12 @@ void lhcStatusTask(void*)
         HTTPClient httpClient;
 	    httpClient.begin(pageUrl);
 
-        logPrintf("Reading LHC Status...");
+        logPrintf(F("LHC: Reading status..."));
 
         int httpCode = httpClient.GET();
         if (httpCode != HTTP_CODE_OK)
         {
-            logPrintf("Couldn't get URL: %d", httpCode);
+            logPrintf("LHC: Couldn't get URL: %d", httpCode);
             lhcState.clear();
             delay(60000);
             continue;
@@ -151,7 +151,7 @@ void lhcStatusTask(void*)
             lhcState = newLHCStatus;
         }
 
-        logPrintf("%s", lhcState.getDescription().c_str());
+        logPrintf("LHC: %s", lhcState.getDescription().c_str());
 
         delay(60000);
     }
