@@ -11,42 +11,43 @@
 
 static const char pageUrl[] PROGMEM = "http://alicedcs.web.cern.ch/AliceDCS/monitoring/screenshots/rss.xml";
 
-static Semaphore lhcStatusSemaphore;
+static Semaphore semaphore;
 
 struct LHCState
 {
     LHCState() {clear();}
     
-    String combinedPage1Comment;
+    String page1Comment;
+    String beamMode;
     String energy;
     String lastUpdate;
 
     void clear()
     {
-        SemaphoreLocker<Semaphore> locker(lhcStatusSemaphore);
-        combinedPage1Comment = F("No Page1 comment...");
-        energy = F("Unknown");
+        SemaphoreLocker<Semaphore> locker(semaphore);
+        page1Comment = F("No Page1 comment...");
+        beamMode = F("???");
+        energy = F("???");
         lastUpdate = getDateTime();
     }
 
-    LHCState getCopy()
+    String getCombinedComment()
     {
-        SemaphoreLocker<Semaphore> locker(lhcStatusSemaphore);
-        return *this;
+        SemaphoreLocker<Semaphore> locker(semaphore);
+        return beamMode + ": " + page1Comment;
     }
+
+    String getDescription()
+    {
+        SemaphoreLocker<Semaphore> locker(semaphore);
+        String result = beamMode + ": " + page1Comment;
+        result += " -- ";
+        result += energy;
+        return result;
+    } 
 };
 
-LHCState lhcState;
-
-String getLHCStateDescription()
-{
-    LHCState localCopy = lhcState.getCopy();
-
-    String result = localCopy.combinedPage1Comment;
-    result += " -- ";
-    result += localCopy.energy;
-    return result;
-}
+static LHCState lhcState;
 
 
 // String getPage1Comment()
@@ -81,10 +82,10 @@ String getLHCStateDescription()
 
 void lhcHandleRequest(AsyncWebServerRequest *request)
 {
-   auto localCopy = lhcState.getCopy();
+   auto localCopy = lhcState;
 
     const std::map<String,String> m = {
-        {"p1comment", localCopy.combinedPage1Comment},
+        {"p1comment", localCopy.beamMode + ": " + localCopy.page1Comment},
         {"energy", localCopy.energy},
         {"updated", localCopy.lastUpdate}
     };
@@ -123,43 +124,34 @@ void lhcStatusTask(void*)
             continue;
         }
 
-	    auto httpStream = httpClient.getStream();
 
-        LHCState newLHCState;
-        String beamMode;
+        //this map will collect values from the XML file for us
+        LHCState newLHCStatus;
+        std::map<String, String&> m = 
+                {{"LhcPage1", newLHCStatus.page1Comment},
+                 {"BeamEnergy", newLHCStatus.energy},
+                 {"LhcBeamMode", newLHCStatus.beamMode}};
 
+        auto httpStream = httpClient.getStream();
         while (httpStream.available())
         {
             httpStream.findUntil("<title>","</rss>");
             auto title = httpStream.readStringUntil(':');
-            if (title == F("LhcPage1"))
-            {
-                String& newPage1Comment = newLHCState.combinedPage1Comment;
-                newPage1Comment = httpStream.readStringUntil('<');
-                newPage1Comment.trim();
-                newPage1Comment.replace(F("\n\n"), F("\n"));
-            }
-
-            if (title == F("BeamEnergy"))
-            {
-                newLHCState.energy = httpStream.readStringUntil('<');
-                newLHCState.energy.trim();
-            }
-
-            if (title == F("LhcBeamMode"))
-            {
-                beamMode = httpStream.readStringUntil('<');
-                beamMode.trim();
-            }
+            auto content = httpStream.readStringUntil('\n');
+            content.replace("</title>","");
+            content.trim();
+            
+            //check if we want to save this elements and if so store it in the map
+            auto f = m.find(title);
+            if (f != m.end()) (f->second) = content;
         }
 
         {
-            newLHCState.combinedPage1Comment = beamMode + ": " +  newLHCState.combinedPage1Comment;
-            SemaphoreLocker<Semaphore> locker(lhcStatusSemaphore);
-            lhcState = newLHCState;
+            SemaphoreLocker<Semaphore> locker(semaphore);
+            lhcState = newLHCStatus;
         }
 
-        logPrintf("%s", getLHCStateDescription().c_str());
+        logPrintf("%s", lhcState.getDescription().c_str());
 
         delay(60000);
     }
