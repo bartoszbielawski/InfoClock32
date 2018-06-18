@@ -58,9 +58,11 @@ void handleConfigSave(AsyncWebServerRequest* request)
     auto file = SPIFFS.open("/config.txt", "w");
     file.print(content);
     file.close();
-    readConfigFromFS(); //reload configuration
 
-    request->redirect("/");
+    request->send(200, "text/plain", "Rebooting...");
+
+    delay(5000);
+    ESP.reset();
 }
 
 void configureWebServer()

@@ -159,11 +159,6 @@ void owmTask(void*)
             w.temperature = atof(results["/root/main/temp"].c_str());
             w.location = results["/root/name"].c_str();
 
-            for (const auto& p: results)
-            {
-                logPrintf("OWM: %s = %s", p.first.c_str(), p.second.c_str());
-            }
-
             //get forecast
             snprintf_P(localBuffer, sizeof(localBuffer), urlForecastTemplate, w.locationId, owmAPIKey.c_str());
             logPrintf(F("OWM URL: %s"), localBuffer);
@@ -177,11 +172,7 @@ void owmTask(void*)
 
             w.temperatureForecast = atof(results["/root/list/1/main/temp"].c_str());
             w.description = results["/root/list/1/weather/0/description"].c_str();
-
-            for (const auto& p: results)
-            {
-                logPrintf("OWM: %s = %s", p.first.c_str(), p.second.c_str());
-            }
+            
             httpClient.end();
         
             sleep(10);
