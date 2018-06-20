@@ -4,9 +4,10 @@
 #include "displayTask.h"
 #include "utils.h"
 
-#include "SSD1306Wire.h"
+#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-
+#include <Time.h>
+#include <WiFi.h>
 
 DisplayTask::DisplayTask()
 {
@@ -35,26 +36,30 @@ void DisplayTask::rtTask(void* that)
 {
     logPrintf("Display task starting...");
 
-    pinMode(16, OUTPUT);
-    digitalWrite(16, 0);
-    delay(100); 
-    digitalWrite(16, 1); 
-    delay(100);
-
     DisplayTask* o = static_cast<DisplayTask*>(that);
-    
-    SSD1306Wire display(0x3C, 4, 15, GEOMETRY_128_64);
-    display.init();
-    display.flipScreenVertically();
-   
-    display.setTextAlignment(TEXT_ALIGN_LEFT);
-    display.setFont(ArialMT_Plain_10);
-    display.displayOn();
 
+    Wire.begin(4,15);
+    Adafruit_SSD1306 display(16);
+
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
+    display.clearDisplay();
+
+    //display.setFont(&Roboto_Mono_Medium_8);  
+    display.setTextColor(WHITE);
+    display.setTextSize(1);
+  
     while(true)
     {   
-        display.clear();
-        display.drawString(0, 0, getDateTime());
+        display.clearDisplay();
+        display.setTextSize(1);
+        
+        display.setCursor(0,0);
+        display.printf("%s", getFormattedDateTime("%m-%d %H:%M"));
+
+        const char* wifiState = WiFi.status() == WL_CONNECTED? "OK": "X";
+        display.setCursor(100, 0);
+        display.println(wifiState);
+
 
         String& cm = o->currentMessage;
 
@@ -99,8 +104,9 @@ void DisplayTask::rtTask(void* that)
         //     line += emptyLine.substring(0,tillEndOfLine);
         // }
 
-        //display.drawString(0, 16, line);
-        display.drawStringMaxWidth(0, 16, 120, cm);
+        // display.drawLine(0, 10, 128, 10, WHITE);
+        // display.setCursor(0, 12);
+        // display.println(cm);
         display.display();
 
         cm = String();

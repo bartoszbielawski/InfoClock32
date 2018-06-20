@@ -3,6 +3,7 @@
 #include <config_utils.h>
 #include <rtos_utils.h>
 #include <displayTask.h>
+#include <ctime>
 
 static Semaphore loggingSemaphore;
 
@@ -105,6 +106,16 @@ const char* getDateTime()
             lt->tm_sec);
     
     return dateTimeString;
+}
+
+static char b[128];
+
+const char* getFormattedDateTime(const char* fmt)
+{
+    time_t now = time(NULL);
+	auto lt = localtime(&now);
+    strftime(b, 128, fmt, lt);
+    return b;
 }
 
 static char upTimeString[32] = "???";

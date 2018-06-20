@@ -13,6 +13,7 @@ void logPrintf(uint16_t mode, const char* fmt, ...);
 void logPrintf(uint16_t mode, const __FlashStringHelper* fmt, ...);
 
 const char* getDateTime();
+const char* getFormattedDateTime(const char* fmt);
 const char* getUpTime();
 
 #include <map>

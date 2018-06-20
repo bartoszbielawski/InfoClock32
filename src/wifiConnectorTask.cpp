@@ -40,11 +40,6 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
 void configureWifi()
 {
     delay(1000);
- 
-    WiFi.enableAP(false);
-    WiFi.enableSTA(true);
-    WiFi.setAutoConnect(true);
-    WiFi.setAutoReconnect(true);
 
     WiFi.onEvent(WiFiEvent);
 
@@ -52,7 +47,7 @@ void configureWifi()
     AsyncWiFiManager wifiManager(&getWebServer(),&dnsServer);
 
     wifiManager.setBreakAfterConfig(true);
-    wifiManager.setConnectTimeout(120);
+    wifiManager.setConnectTimeout(30);
     wifiManager.setConfigPortalTimeout(120) ;    //seconds
     wifiManager.setDebugOutput(false);
 
