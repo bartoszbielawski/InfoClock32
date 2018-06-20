@@ -49,35 +49,10 @@ struct LHCState
 
 static LHCState lhcState;
 
-
-// String getPage1Comment()
-// {
-//     SemaphoreLocker locker(lhcStatusSemaphore);
-//     return lhcState.combinedPage1Comment;
-//     
-// }
-
-// String getBeamEnergy()
-// {
-//     SemaphoreLocker locker(lhcStatusSemaphore);
-//     return lhcState.energy;
-//     if (not beamEnergy.length())
-//         return "Energy: ???";
-//     String s("Energy: ");
-//     s += beamEnergy;
-//     return s;
-// }
-
-// String readFullLine(Stream& s)
-// {
-//     String result;
-//     while (not result.endsWith("</title>"))
-//     {
-//         result += s.readStringUntil('\n');
-//     }
-
-//     return result;
-// }
+String getLHCState() 
+{
+    return lhcState.getDescription();
+}
 
 
 void lhcHandleRequest(AsyncWebServerRequest *request)

@@ -1,10 +1,53 @@
-#include "utils.h"
+#include <utils.h>
 #include <time.h>
 #include <config_utils.h>
 #include <rtos_utils.h>
-//TODO: add mutex locking for the logging
+#include <displayTask.h>
 
 static Semaphore loggingSemaphore;
+
+
+void logPrint(const char* string, uint16_t mode)
+{
+    if (mode == 0) mode = S;
+    if (mode & S)
+    {
+        Serial.printf("%s: ",getDateTime());
+        Serial.println(string);
+    }
+    if (mode & D)
+    {
+        dt.addMessage(string);
+    }
+}
+
+void logPrintf(uint16_t mode, const char* fmt,...)
+{
+    SemaphoreLocker<Semaphore> locker(loggingSemaphore);
+    char localBuffer[128];
+    va_list args;
+    va_start (args, fmt);
+
+    vsnprintf(localBuffer, sizeof(localBuffer), fmt, args);
+
+    va_end (args);
+
+    logPrint(localBuffer, mode);
+}
+
+void logPrintf(uint16_t mode, const __FlashStringHelper* fmt, ...)
+{
+    SemaphoreLocker<Semaphore> locker(loggingSemaphore);
+    char localBuffer[128];
+    va_list args;
+    va_start (args, fmt);
+
+    vsnprintf(localBuffer, sizeof(localBuffer), (const char*)fmt, args);
+
+    va_end (args);
+
+    logPrint(localBuffer, mode);
+}
 
 void logPrintf(const char* fmt,...)
 {
@@ -17,9 +60,9 @@ void logPrintf(const char* fmt,...)
 
     va_end (args);
 
-    Serial.printf("%s: ",getDateTime());
-    Serial.println(localBuffer);
+    logPrint(localBuffer, SERIAL);
 }
+
 
 void logPrintf(const __FlashStringHelper* fmt, ...)
 {
@@ -32,8 +75,7 @@ void logPrintf(const __FlashStringHelper* fmt, ...)
 
     va_end (args);
 
-    Serial.printf("%s: ",getDateTime());
-    Serial.println(localBuffer);
+    logPrint(localBuffer, SERIAL);
 }
 
 

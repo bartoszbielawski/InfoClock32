@@ -181,6 +181,28 @@ void owmTask(void*)
     }
 }
 
+String getWeatherDescription()
+{
+    char buffer[128];
+    String result;
+    result.reserve(512);
+
+    for (const auto& w: weathers)
+    {
+        if (w.location.length() == 0)
+            continue;
+
+        snprintf(buffer, sizeof(buffer), "%s - %s*C (%s*C, %s) --",
+            w.location.c_str(),
+            String(w.temperature,1).c_str(),
+            String(w.temperatureForecast, 1).c_str(),
+            w.description.c_str());
+
+        result += buffer;
+    }
+
+    return result;
+}
 
 String getHTMLWeatherDescription()
 {

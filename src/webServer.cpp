@@ -62,7 +62,7 @@ void handleConfigSave(AsyncWebServerRequest* request)
     request->send(200, "text/plain", "Rebooting...");
 
     delay(5000);
-    ESP.reset();
+    ESP.restart();
 }
 
 void configureWebServer()

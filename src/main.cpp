@@ -3,15 +3,25 @@
 #include <SPIFFS.h>
 #include <config_utils.h>
 #include <utils.h>
+#include <displayTask.h>
+#include <lhcTask.h>
 
 void configureWifi();
 void lhcStatusTask(void*);
 void owmTask(void*);
+void i2cScannerTask(void*);
+
+String getWeatherDescription();
 
 void setup() {
     Serial.begin(115200);
-    SPIFFS.begin();
-    
+    if (not SPIFFS.begin())
+        SPIFFS.format();
+
+    dt.addCyclicMessage(getLHCState);
+    dt.addCyclicMessage(getWeatherDescription);
+    dt.run();
+
     readConfigFromFS();
     configureWifi();
 
@@ -19,7 +29,6 @@ void setup() {
     configTime(timeZoneOffset, 0, "pool.ntp.org", "time.nist.gov", "ntp3.pl");
     configureWebServer();
     
-    logPrintf("Task creation...");
     xTaskCreate(lhcStatusTask, "LHCTask", 4096, NULL, 5, NULL);
     xTaskCreate(owmTask, "OWM", 4096, NULL, 5, NULL);
 }
