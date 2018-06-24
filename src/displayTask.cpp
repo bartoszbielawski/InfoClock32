@@ -9,6 +9,10 @@
 #include <Time.h>
 #include <WiFi.h>
 
+#include <Fonts/FreeMono9pt7b.h>
+#include <Fonts/FreeSans9pt7b.h>
+#include <gfx_utils.h>
+
 DisplayTask::DisplayTask()
 {
     xTaskCreate(&DisplayTask::rtTask, "DisplayTask", 8192, this, 5, &handle);
@@ -32,6 +36,14 @@ const String emptyLine("                                               ");
 
 DisplayTask dt;
 
+void displayTime(Adafruit_GFX& display)
+{
+    display.setTextSize(1);
+    display.setFont();
+    display.setCursor(0,0);
+    display.printf("%s", getFormattedDateTime("%m-%d %H:%M"));
+}
+
 void DisplayTask::rtTask(void* that)
 {
     logPrintf("Display task starting...");
@@ -40,26 +52,39 @@ void DisplayTask::rtTask(void* that)
 
     Wire.begin(4,15);
     Adafruit_SSD1306 display(16);
-
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
-    display.clearDisplay();
 
-    //display.setFont(&Roboto_Mono_Medium_8);  
+    Wire.setClock(800000);
+    display.clearDisplay();
+ 
     display.setTextColor(WHITE);
-    display.setTextSize(1);
   
     while(true)
     {   
         display.clearDisplay();
-        display.setTextSize(1);
-        
-        display.setCursor(0,0);
-        display.printf("%s", getFormattedDateTime("%m-%d %H:%M"));
+        displayTime(display);
 
-        const char* wifiState = WiFi.status() == WL_CONNECTED? "OK": "X";
+        auto wifiMode = WiFi.getMode();
+
+        const char* wifiState = "?";
+
+        logPrintf("WiFiMode: %d", wifiMode);
+
+        switch (wifiMode)
+        {
+            case  WIFI_MODE_STA:
+                wifiState = WiFi.isConnected()? "OK": "X";
+                break;
+            case  WIFI_MODE_APSTA:
+            case  WIFI_MODE_AP:
+                wifiState = "AP";
+                break;
+            default:
+                wifiState = "?";
+        };
+
         display.setCursor(100, 0);
         display.println(wifiState);
-
 
         String& cm = o->currentMessage;
 
@@ -80,40 +105,43 @@ void DisplayTask::rtTask(void* that)
             logPrintf("Message: %s", cm.c_str());
         }
 
-        // int lineEndIndex = cols;
-        // String fullLine = cm.substring(0, cols);
+        const static int canvasHeight = 20;
 
-        // if ((fullLine.length() == cols) && (cm.length() != cols))
-        // {
-        //     //find last whitespace
-        //     int lastWhitespace = fullLine.lastIndexOf(' ');
-        //     if (lastWhitespace < 0) lastWhitespace = cols;
+        auto len = cm.length() * 15;
+        GFXcanvas1Read canvas(len, canvasHeight);
+        canvas.setTextSize(1);
+        canvas.setFont(&FreeSans9pt7b);
+        int16_t x;
+        int16_t y;
+        uint16_t w;
+        uint16_t h;
+        canvas.getTextBounds((char*)cm.c_str(), 0, canvasHeight * 3/4, &x, &y, &w, &h);
+        canvas.setCursor(0, canvasHeight * 3/4);
+        canvas.print(cm);
 
-        //     int newLineIndex =   fullLine.indexOf('\n');
-        //     if (newLineIndex < 0)   newLineIndex   = cols;
+        //logPrintf("x: %d y: %d w: %d h:%d", x, y, w, h);
+        
+        const static int step = 3;
+
+        if (w > display.width())
+        {
             
-        //     lineEndIndex = std::min(lastWhitespace, newLineIndex);
-        // }
+            for (int sx = 0; sx < w - display.width() + step; sx += step)
+            {
+                copyBitmap(canvas, sx, y, display, 0, 20, display.width(), h);
+                display.display();
+                delay(sx == 0 ? 500: 10);
+            }     
+        }
+        else
+        {
+            int offset = (display.width() - w) / 2;
+            copyBitmap(canvas, 0, y, display, offset, 20, display.width(), h);
+            display.display();
+            delay(500);
+        }
 
-        // String line = cm.substring(0, lineEndIndex);
-        // line.trim();
-
-        // auto tillEndOfLine = cols - line.length();
-        // if (tillEndOfLine)
-        // {
-        //     line += emptyLine.substring(0,tillEndOfLine);
-        // }
-
-        // display.drawLine(0, 10, 128, 10, WHITE);
-        // display.setCursor(0, 12);
-        // display.println(cm);
-        display.display();
-
+        delay(500);
         cm = String();
-
-        // cm = cm.substring(lineEndIndex);
-        // cm.trim();
-    
-        vTaskDelay(2000);
     }
 }

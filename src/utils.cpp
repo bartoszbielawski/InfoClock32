@@ -141,7 +141,7 @@ const char* getUpTime()
     int minutes = d.quot;
     int seconds = d.rem;
 
-    snprintf(upTimeString, sizeof(upTimeString), "%dd %02dh %02dm %02ds", days, hours, minutes, seconds);
+    snprintf(upTimeString, sizeof(upTimeString), "%dd%02dh%02dm%02ds", days, hours, minutes, seconds);
 
     return upTimeString;
 }

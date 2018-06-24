@@ -4,3 +4,5 @@ userPassword=password
 lhc.enabled=1
 owm.apikey=
 owm.ids=2660646
+wifi.essid=
+wifi.password=

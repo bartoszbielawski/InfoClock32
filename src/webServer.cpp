@@ -67,6 +67,7 @@ void handleConfigSave(AsyncWebServerRequest* request)
 
 void configureWebServer()
 {
+    webServer.reset();
     logPrintf("WebServer config - start");
     webServer.onNotFound(
          [](AsyncWebServerRequest *request)

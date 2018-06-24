@@ -98,6 +98,8 @@ std::vector<Weather> weathers;
 
 void owmTask(void*)
 {
+    sleep(30);  //FIXME: remove when waking up on connected happens
+
     String owmAPIKey = getConfigValue("owm.apikey", String());
     logPrintf(F("OWM: Starting..."));
     {
@@ -200,6 +202,9 @@ String getWeatherDescription()
 
         result += buffer;
     }
+
+    if (result.length() == 0)
+        return F("No weather forecast available...");
 
     return result;
 }

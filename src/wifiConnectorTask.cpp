@@ -1,11 +1,12 @@
 #include <wifiConnectorTask.h>
-#include <ESPAsyncWiFiManager.h>
-
+#include <WiFi.h>
 #include "webServer.h"
 #include <utils.h>
 #include <config_utils.h>
 
 #include <map>
+
+void configureWebServer();
 
 const std::map<WiFiEvent_t, String> descr =
 {
@@ -36,29 +37,59 @@ void WiFiEvent(WiFiEvent_t event, system_event_info_t info)
 }
 
 
+static const int timeoutMax = 30;
 
-void configureWifi()
+void wifiTask(void*)
 {
-    delay(1000);
+    logPrintf(SD, "WiFi task starting...");
+   
+    WiFi.setAutoConnect(true);
+    WiFi.setAutoReconnect(true);
 
-    WiFi.onEvent(WiFiEvent);
-
-    DNSServer dnsServer;
-    AsyncWiFiManager wifiManager(&getWebServer(),&dnsServer);
-
-    wifiManager.setBreakAfterConfig(true);
-    wifiManager.setConnectTimeout(30);
-    wifiManager.setConfigPortalTimeout(120) ;    //seconds
-    wifiManager.setDebugOutput(false);
-
-    logPrintf(SD, F("MAC Address: %s"), WiFi.macAddress().c_str());
-    //reset settings - for testing
-    //wifiManager.resetSettings();
-
-    if (not wifiManager.autoConnect())
+    while (true)
     {
-        logPrintf(SD, F("Couldn't connect to WiFi, resetting..."));
-        sleep(5);
-        ESP.restart();
+        String essid = getConfigValue(F("wifi.essid"), String());
+        String pwd =   getConfigValue(F("wifi.password"), String());
+
+        WiFi.softAPdisconnect();
+        WiFi.mode(WIFI_STA);
+        WiFi.begin(essid.c_str(), pwd.c_str());
+        
+        auto timeout = essid.length() ? timeoutMax: 0;
+
+        while ((timeout > 0) && (WiFi.status() != WL_CONNECTED))
+        {
+            WiFi.reconnect();
+            timeout -= 1;
+            sleep(1);
+        }
+
+        if (timeout == 0)
+        {
+            logPrintf(SD, F("Failed to connect! Using AP mode!"));
+            //didn't connect or not configured
+            WiFi.mode(WIFI_AP);
+            WiFi.softAP("esp-display");
+            WiFi.begin();
+
+            sleep(10);
+
+            configureWebServer();
+
+            sleep(120); //sleep for 120 seconds
+            continue;
+        }
+
+        logPrintf(SD, F("Connected to %s"), essid.c_str());
+        logPrintf(SD, F("IP: %s"), WiFi.localIP().toString().c_str());
+
+        configureWebServer();
+
+        while (WiFi.status() == WL_CONNECTED)
+        {
+            sleep(5);
+        }
+
+        logPrintf(SD, F("Lost connection, retrying..."));
     }
 }

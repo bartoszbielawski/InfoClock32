@@ -10,6 +10,7 @@ void configureWifi();
 void lhcStatusTask(void*);
 void owmTask(void*);
 void i2cScannerTask(void*);
+void wifiTask(void*);
 
 String getWeatherDescription();
 
@@ -21,13 +22,14 @@ void setup() {
     dt.addCyclicMessage(getLHCState);
     dt.addCyclicMessage(getWeatherDescription);
     dt.run();
-
+    
     readConfigFromFS();
-    configureWifi();
+
+    xTaskCreate(wifiTask, "WiFiTask", 2048, NULL, 2, NULL);
 
     int timeZoneOffset = getConfigValue("timezone", "0").toInt();
     configTime(timeZoneOffset, 0, "pool.ntp.org", "time.nist.gov", "ntp3.pl");
-    configureWebServer();
+    //configureWebServer();
     
     xTaskCreate(lhcStatusTask, "LHCTask", 4096, NULL, 5, NULL);
     xTaskCreate(owmTask, "OWM", 4096, NULL, 5, NULL);

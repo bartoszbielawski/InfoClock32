@@ -25,9 +25,9 @@ struct LHCState
     void clear()
     {
         SemaphoreLocker<Semaphore> locker(semaphore);
-        page1Comment = F("No Page1 comment...");
-        beamMode = F("???");
-        energy = F("???");
+        page1Comment = String();
+        beamMode = String();
+        energy = String();
         lastUpdate = getDateTime();
     }
 
@@ -40,6 +40,9 @@ struct LHCState
     String getDescription()
     {
         SemaphoreLocker<Semaphore> locker(semaphore);
+        if (beamMode.length() == 0)
+            return F("LHC status unavailable...");
+            
         String result = beamMode + ": " + page1Comment;
         result += " -- ";
         result += energy;
@@ -71,6 +74,8 @@ void lhcHandleRequest(AsyncWebServerRequest *request)
 void lhcStatusTask(void*)
 {
     logPrintf("LHC: Status Task Starting!");
+
+    sleep(30); //FIXME: remove when connection status arrives
 
     bool enabled = getConfigValue("lhc.enabled", "0").toInt();
     if (!enabled)
