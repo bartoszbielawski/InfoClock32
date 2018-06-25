@@ -64,45 +64,29 @@ void DisplayTask::rtTask(void* that)
         display.clearDisplay();
         displayTime(display);
 
-        auto wifiMode = WiFi.getMode();
+        const String ipAddress = WiFi.localIP().toString().c_str();
+        String wifiState = "OK";
 
-        const char* wifiState = "?";
-
-        logPrintf("WiFiMode: %d", wifiMode);
-
-        switch (wifiMode)
-        {
-            case  WIFI_MODE_STA:
-                wifiState = WiFi.isConnected()? "OK": "X";
-                break;
-            case  WIFI_MODE_APSTA:
-            case  WIFI_MODE_AP:
-                wifiState = "AP";
-                break;
-            default:
-                wifiState = "?";
-        };
+        if (ipAddress == "0.0.0.0")
+            wifiState = "X";
+        if (ipAddress == "192.168.4.1")
+            wifiState = "AP";
 
         display.setCursor(100, 0);
-        display.println(wifiState);
+        display.print(wifiState);
 
-        String& cm = o->currentMessage;
+        String cm;
 
-        if (cm.length() == 0)
+        if (o->priorityMessages.size())
         {
-            if (o->priorityMessages.size())
-            {
-                logPrintf("Loading new priority message...");
-                cm = o->priorityMessages.front();
-                o->priorityMessages.pop();
-            }
-            else
-            {
-                logPrintf("Loading new regular message...");
-                cm = o->messages[o->currentMessageIndex++](); 
-                o->currentMessageIndex = o->currentMessageIndex % o->messages.size();
-            }
-            logPrintf("Message: %s", cm.c_str());
+            cm = o->priorityMessages.front();
+            o->priorityMessages.pop();
+            logPrintf(F("DPL PM: %s"), cm.c_str());
+        }
+        else
+        {
+            cm = o->messages[o->currentMessageIndex++](); 
+            o->currentMessageIndex = o->currentMessageIndex % o->messages.size();
         }
 
         const static int canvasHeight = 20;
@@ -119,8 +103,6 @@ void DisplayTask::rtTask(void* that)
         canvas.setCursor(0, canvasHeight * 3/4);
         canvas.print(cm);
 
-        //logPrintf("x: %d y: %d w: %d h:%d", x, y, w, h);
-        
         const static int step = 3;
 
         if (w > display.width())
@@ -142,6 +124,5 @@ void DisplayTask::rtTask(void* that)
         }
 
         delay(500);
-        cm = String();
     }
 }

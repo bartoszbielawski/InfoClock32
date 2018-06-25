@@ -41,7 +41,7 @@ static const int timeoutMax = 30;
 
 void wifiTask(void*)
 {
-    logPrintf(SD, "WiFi task starting...");
+    logPrintf(F("WiFi task starting..."));
    
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
@@ -51,15 +51,16 @@ void wifiTask(void*)
         String essid = getConfigValue(F("wifi.essid"), String());
         String pwd =   getConfigValue(F("wifi.password"), String());
 
-        WiFi.softAPdisconnect();
         WiFi.mode(WIFI_STA);
         WiFi.begin(essid.c_str(), pwd.c_str());
         
+        auto macAddress = WiFi.macAddress();
+        logPrintf(SD, F("MAC: %s"), macAddress.c_str());
+
         auto timeout = essid.length() ? timeoutMax: 0;
 
         while ((timeout > 0) && (WiFi.status() != WL_CONNECTED))
         {
-            WiFi.reconnect();
             timeout -= 1;
             sleep(1);
         }
@@ -77,6 +78,8 @@ void wifiTask(void*)
             configureWebServer();
 
             sleep(120); //sleep for 120 seconds
+
+            WiFi.softAPdisconnect();
             continue;
         }
 

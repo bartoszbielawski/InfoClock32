@@ -127,6 +127,11 @@ void lhcStatusTask(void*)
         }
 
         {
+            //values over 7000 are mistakes...
+            if (newLHCStatus.energy.toInt() > 7000)
+            {
+                newLHCStatus.energy = "0 GeV";
+            }
             SemaphoreLocker<Semaphore> locker(semaphore);
             lhcState = newLHCStatus;
         }

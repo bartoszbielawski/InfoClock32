@@ -163,7 +163,7 @@ void owmTask(void*)
 
             //get forecast
             snprintf_P(localBuffer, sizeof(localBuffer), urlForecastTemplate, w.locationId, owmAPIKey.c_str());
-            logPrintf(F("OWM URL: %s"), localBuffer);
+            logPrintf(F("OWM: URL: %s"), localBuffer);
             code = getHttpResponse(httpClient, mc, localBuffer);
             if (code != 200)
             {
@@ -187,7 +187,7 @@ String getWeatherDescription()
 {
     char buffer[128];
     String result;
-    result.reserve(512);
+    result.reserve(weathers.size() * 64);
 
     for (const auto& w: weathers)
     {
@@ -205,6 +205,8 @@ String getWeatherDescription()
 
     if (result.length() == 0)
         return F("No weather forecast available...");
+
+    result.remove(result.length()-2, 2);
 
     return result;
 }
