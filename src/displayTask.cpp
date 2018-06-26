@@ -11,7 +11,7 @@
 
 #include <Fonts/FreeMono9pt7b.h>
 #include <Fonts/FreeSans9pt7b.h>
-#include <gfx_utils.h>
+#include <afbuffer.h>
 
 DisplayTask::DisplayTask()
 {
