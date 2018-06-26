@@ -1,3 +1,6 @@
 [submodule "lib/ESPAsyncWebServer"]
 	path = lib/ESPAsyncWebServer
 	url = https://github.com/me-no-dev/ESPAsyncWebServer.git
+[submodule "lib/AFBuffer"]
+	path = lib/AFBuffer
+	url = https://github.com/bartoszbielawski/AFBuffer.git
