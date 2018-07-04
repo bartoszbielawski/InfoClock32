@@ -3,7 +3,7 @@
 #include "webServer.h"
 #include <utils.h>
 #include <config_utils.h>
-
+#include <task_utils.h> 
 #include <map>
 
 void configureWebServer();
@@ -96,3 +96,5 @@ void wifiTask(void*)
         logPrintf(SD, F("Lost connection, retrying..."));
     }
 }
+
+//TaskScheduler::Register wifiTaskRegister(new Task("WiFi", wifiTask));

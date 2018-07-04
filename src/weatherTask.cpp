@@ -15,7 +15,7 @@
 #include <pgmspace.h>
 #include <SPIFFS.h>
 #include <webServer.h>
-
+#include <task_utils.h>
 /*
  * 2660646 - Geneva
  * 2659667 - Meyrin
@@ -98,7 +98,8 @@ std::vector<Weather> weathers;
 
 void owmTask(void*)
 {
-    sleep(30);  //FIXME: remove when waking up on connected happens
+    //vTaskSuspend(NULL);
+    weathers.clear();
 
     String owmAPIKey = getConfigValue("owm.apikey", String());
     logPrintf(F("OWM: Starting..."));
@@ -241,5 +242,6 @@ void owmHandleStatus(AsyncWebServerRequest *request)
 }
 
 
+TaskScheduler::Register owmTaskRegister(new Task("OWM", owmTask, 4096));
 
 

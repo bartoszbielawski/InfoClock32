@@ -8,6 +8,7 @@
 #include <ESPAsyncWebServer.h>
 #include <SPIFFS.h>
 #include <rtos_utils.h>
+#include <task_utils.h>
 
 static const char pageUrl[] PROGMEM = "http://alicedcs.web.cern.ch/AliceDCS/monitoring/screenshots/rss.xml";
 
@@ -73,6 +74,7 @@ void lhcHandleRequest(AsyncWebServerRequest *request)
 
 void lhcStatusTask(void*)
 {
+    vTaskSuspend(NULL);
     logPrintf("LHC: Status Task Starting!");
 
     sleep(30); //FIXME: remove when connection status arrives
@@ -141,3 +143,5 @@ void lhcStatusTask(void*)
         delay(60000);
     }
 }
+
+TaskScheduler::Register lhcTaskRegister(new Task("LHC", lhcStatusTask, 8192));

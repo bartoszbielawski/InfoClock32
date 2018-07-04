@@ -5,6 +5,7 @@
 #include <utils.h>
 #include <displayTask.h>
 #include <lhcTask.h>
+#include <task_utils.h>
 
 void configureWifi();
 void lhcStatusTask(void*);
@@ -21,7 +22,6 @@ void setup() {
 
     dt.addCyclicMessage(getLHCState);
     dt.addCyclicMessage(getWeatherDescription);
-    dt.run();
     
     readConfigFromFS();
 
@@ -31,8 +31,12 @@ void setup() {
     configTime(timeZoneOffset, 0, "pool.ntp.org", "time.nist.gov", "ntp3.pl");
     //configureWebServer();
     
-    xTaskCreate(lhcStatusTask, "LHCTask", 4096, NULL, 5, NULL);
-    xTaskCreate(owmTask, "OWM", 4096, NULL, 5, NULL);
+    for(auto* t: TaskScheduler::getTasks())
+    {
+        t->start();
+        delay(100);
+        t->resume();
+    }
 }
 
 void loop() 

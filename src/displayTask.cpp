@@ -16,7 +16,7 @@
 DisplayTask::DisplayTask()
 {
     xTaskCreate(&DisplayTask::rtTask, "DisplayTask", 8192, this, 5, &handle);
-    vTaskSuspend(handle);
+    addCyclicMessage([](){return getFormattedDateTime("%H:%M");});
 }
 
 DisplayTask::~DisplayTask()
@@ -54,7 +54,7 @@ void DisplayTask::rtTask(void* that)
     Adafruit_SSD1306 display(16);
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // initialize with the I2C addr 0x3D (for the 128x64)
 
-    Wire.setClock(800000);
+    Wire.setClock(20000);
     display.clearDisplay();
  
     display.setTextColor(WHITE);
@@ -103,7 +103,7 @@ void DisplayTask::rtTask(void* that)
         canvas.setCursor(0, canvasHeight * 3/4);
         canvas.print(cm);
 
-        const static int step = 3;
+        const static int step = 10;
 
         if (w > display.width())
         {

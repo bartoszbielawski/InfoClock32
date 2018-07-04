@@ -1,8 +1,8 @@
 #include <taskWrapper.h>
 
 
-Task::Task(String name, TaskFunction_t function, size_t stackSize, UBaseType_t priority):
-    function(function), name(name), stackSize(stackSize), priority(priority), handle(nullptr)
+Task::Task(String name, TaskFunction_t function, size_t stackSize, UBaseType_t priority, uint32_t flags):
+    function(function), name(name), stackSize(stackSize), priority(priority), flags(flags), handle(nullptr)
 {
 
 }
