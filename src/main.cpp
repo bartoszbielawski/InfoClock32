@@ -8,9 +8,6 @@
 #include <task_utils.h>
 
 void configureWifi();
-void lhcStatusTask(void*);
-void owmTask(void*);
-void i2cScannerTask(void*);
 void wifiTask(void*);
 
 String getWeatherDescription();
@@ -25,11 +22,11 @@ void setup() {
     
     readConfigFromFS();
 
-    xTaskCreate(wifiTask, "WiFiTask", 2048, NULL, 2, NULL);
+    xTaskCreate(wifiTask, "WiFiTask", 4096, NULL, 2, NULL);
 
     int timeZoneOffset = getConfigValue("timezone", "0").toInt();
     configTime(timeZoneOffset, 0, "pool.ntp.org", "time.nist.gov", "ntp3.pl");
-    //configureWebServer();
+
     
     for(auto* t: TaskScheduler::getTasks())
     {
