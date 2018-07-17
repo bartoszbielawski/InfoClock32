@@ -9,7 +9,10 @@ Task::Task(String name, TaskFunction_t function, size_t stackSize, UBaseType_t p
 
 Task::~Task()
 {
-
+    if (handle)
+        vTaskDelete(handle); 
+    
+    handle = nullptr;
 }
     
 void Task::start()
@@ -22,19 +25,22 @@ void Task::start()
 
 void Task::restart()
 {
-    vTaskDelete(handle);
+    if (handle) 
+        vTaskDelete(handle);
     handle = nullptr;
     start();
 }
 
 void Task::suspend()
 {
-    vTaskSuspend(handle);
+    if (handle)
+        vTaskSuspend(handle);  
 }
 
 void Task::resume()
 {
-    vTaskResume(handle);
+    if (handle)
+        vTaskResume(handle);
 }
 
     

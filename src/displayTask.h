@@ -14,11 +14,9 @@ class DisplayTask
         DisplayTask();
         ~DisplayTask();
 
-        void run() {
-            vTaskResume(handle);
-            }
-
         void addCyclicMessage(const MessageProvider& msg);
+
+        void run();
 
         template <class S>
         void addMessage(S&& s)

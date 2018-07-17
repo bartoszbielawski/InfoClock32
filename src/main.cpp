@@ -19,6 +19,7 @@ void setup() {
 
     dt.addCyclicMessage(getLHCState);
     dt.addCyclicMessage(getWeatherDescription);
+    dt.run();
     
     readConfigFromFS();
 
@@ -27,7 +28,7 @@ void setup() {
     int timeZoneOffset = getConfigValue("timezone", "0").toInt();
     configTime(timeZoneOffset, 0, "pool.ntp.org", "time.nist.gov", "ntp3.pl");
 
-    
+    //dt.run();
     for(auto* t: TaskScheduler::getTasks())
     {
         t->start();

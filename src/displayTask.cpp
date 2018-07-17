@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <Wire.h>
 #include <time.h>
 #include "displayTask.h"
 #include "utils.h"
@@ -8,6 +7,7 @@
 #include <Adafruit_SSD1306.h>
 #include <Time.h>
 #include <WiFi.h>
+#include <Wire.h>
 
 #include <Fonts/FreeMono9pt7b.h>
 #include <Fonts/FreeSans9pt7b.h>
@@ -15,7 +15,7 @@
 
 DisplayTask::DisplayTask()
 {
-    xTaskCreate(&DisplayTask::rtTask, "DisplayTask", 8192, this, 31, &handle);
+    handle = nullptr;
     addCyclicMessage([](){return getFormattedDateTime("%X %x");});
 }
 
@@ -24,15 +24,17 @@ DisplayTask::~DisplayTask()
     vTaskDelete(&handle);
 }
 
+void DisplayTask::run()
+{
+    if (!handle)
+        xTaskCreatePinnedToCore(&DisplayTask::rtTask, "DisplayTask", 16384, this, 16 , &handle, 1);
+}
+
 void DisplayTask::addCyclicMessage(const MessageProvider& msg)
 {
      messages.push_back(msg);
 }
 
-
-const static int cols = 25;
-
-const String emptyLine("                                               ");
 
 DisplayTask dt;
 
@@ -56,7 +58,7 @@ void DisplayTask::rtTask(void* that)
     Adafruit_SSD1306 display(16);
 
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-    Wire.setClock(800000);
+    Wire.setClock(400000);
 
     display.clearDisplay();
     display.setTextColor(WHITE);
