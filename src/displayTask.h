@@ -5,18 +5,17 @@
 #include <functional>
 #include <vector>
 #include <queue>
+#include <taskWrapper.h>
 
 using MessageProvider =  std::function<String()>;
 
-class DisplayTask
+class DisplayTask: public Task
 {
     public:
         DisplayTask();
-        ~DisplayTask();
+        virtual ~DisplayTask() = default;
 
         void addCyclicMessage(const MessageProvider& msg);
-
-        void run();
 
         template <class S>
         void addMessage(S&& s)
@@ -26,7 +25,6 @@ class DisplayTask
 
     private:
         static void rtTask(void*);
-        TaskHandle_t handle;
 
         std::vector<MessageProvider> messages;
         std::queue<String> priorityMessages;

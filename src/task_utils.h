@@ -3,8 +3,7 @@
 
 #include <taskWrapper.h>
 #include <vector>
-
-
+#include <functional>
 class TaskScheduler
 {
     private:
@@ -13,8 +12,9 @@ class TaskScheduler
     public:
         static const std::vector<Task*>& getTasks() {return TaskScheduler::tasks;}
 
-        static void addTask(Task* t) {TaskScheduler::tasks.push_back(t);}
+        static void callOnTasks(Task::Flags, std::function<void(Task*)>);
 
+        static void addTask(Task* t) {TaskScheduler::tasks.push_back(t);}
         struct Register{Register(Task* t) {TaskScheduler::addTask(t);}};
 };
 

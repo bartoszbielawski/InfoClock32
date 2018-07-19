@@ -13,21 +13,10 @@
 #include <Fonts/FreeSans9pt7b.h>
 #include <afbuffer.h>
 
-DisplayTask::DisplayTask()
+DisplayTask::DisplayTask():    
+    Task("DT", &DisplayTask::rtTask, 16384, 30)
 {
-    handle = nullptr;
-    addCyclicMessage([](){return getFormattedDateTime("%X %x");});
-}
-
-DisplayTask::~DisplayTask()
-{
-    vTaskDelete(&handle);
-}
-
-void DisplayTask::run()
-{
-    if (!handle)
-        xTaskCreatePinnedToCore(&DisplayTask::rtTask, "DisplayTask", 16384, this, 16 , &handle, 1);
+    addCyclicMessage([](){return getFormattedDateTime("%H:%M");});
 }
 
 void DisplayTask::addCyclicMessage(const MessageProvider& msg)
@@ -46,10 +35,10 @@ void displayTime(Adafruit_GFX& display)
     display.printf("%s", getFormattedDateTime("%m-%d %H:%M"));
 }
 
-    
-
 void DisplayTask::rtTask(void* that)
 {
+    vTaskSuspend(NULL);
+
     logPrintf("Display task starting...");
 
     DisplayTask* o = static_cast<DisplayTask*>(that);
@@ -58,11 +47,8 @@ void DisplayTask::rtTask(void* that)
     Adafruit_SSD1306 display(16);
 
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-    Wire.setClock(400000);
 
-    display.clearDisplay();
-    display.setTextColor(WHITE);
-  
+    display.setTextColor(WHITE);  
     while(true)
     {   
         display.clearDisplay();

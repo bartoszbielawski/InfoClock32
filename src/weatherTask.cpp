@@ -98,7 +98,7 @@ std::vector<Weather> weathers;
 
 void owmTask(void*)
 {
-    //vTaskSuspend(NULL);
+    vTaskSuspend(NULL);
     weathers.clear();
 
     String owmAPIKey = getConfigValue("owm.apikey", String());
@@ -241,7 +241,5 @@ void owmHandleStatus(AsyncWebServerRequest *request)
     request->send(SPIFFS, "/templates/owmStatus.html", "text/html", false,  [&](const String& k) {return x;});
 }
 
-
-TaskScheduler::Register owmTaskRegister(new Task("OWM", owmTask, 4096));
 
 

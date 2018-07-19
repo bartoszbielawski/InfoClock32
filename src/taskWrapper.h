@@ -15,17 +15,17 @@ class Task
         Task(String name, TaskFunction_t function, size_t stackSize = 8192, UBaseType_t priority = 5, uint32_t flags = NONE);
         virtual ~Task();
 
-        void start();
-        void restart();
         void suspend();
         void resume();
 
+        TaskHandle_t& getTaskHandle() {return handle;}
+        operator TaskHandle_t() const {return handle;}
 
-        const String& getName() const {return name;}
+        const char* getName() const {return pcTaskGetTaskName(handle);}
         uint32_t getFlags() const {return flags;}
     protected:
+        void _start();
         TaskFunction_t function;
-        String name;
         size_t stackSize;
         UBaseType_t priority;
         uint32_t flags;

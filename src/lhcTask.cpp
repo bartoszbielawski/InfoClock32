@@ -143,5 +143,3 @@ void lhcStatusTask(void*)
         delay(60000);
     }
 }
-
-TaskScheduler::Register lhcTaskRegister(new Task("LHC", lhcStatusTask, 8192));
