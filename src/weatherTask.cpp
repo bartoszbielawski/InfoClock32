@@ -45,7 +45,7 @@ static const vector<String> prefixes{
 	"list/1/weather/0/description"
 };
 
-bool jsonPathFilter(const string& key, const string& /*value*/)
+static bool jsonPathFilter(const string& key, const string& /*value*/)
 {
 	String s(key.c_str());
 

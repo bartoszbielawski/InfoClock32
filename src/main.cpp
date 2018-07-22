@@ -11,6 +11,7 @@
 void owmTask(void*);
 void lhcStatusTask(void*);
 void serialCommandTask(void*);
+void fixerIoTask(void*);
 
 String getWeatherDescription();
 
@@ -20,7 +21,7 @@ TaskScheduler::Register serialCommandTaskR(new Task("SCT", &serialCommandTask));
 
 TaskScheduler::Register owmTaskR(new Task("WFT", &owmTask, 8192, 5, Task::CONNECTED));
 TaskScheduler::Register lhcStatusTaskR(new Task("LHC", &lhcStatusTask, 8192, 5, Task::CONNECTED));
-
+TaskScheduler::Register fixerioTaskR(new Task("FIO", &fixerIoTask, 8192, 4, Task::CONNECTED));
 void setup() {
     Serial.begin(115200);
     if (not SPIFFS.begin())

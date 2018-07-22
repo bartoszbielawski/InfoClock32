@@ -55,20 +55,24 @@ void wifiConnectorTask(void*)
 {
     vTaskSuspend(NULL);
     logPrintf(F("WiFi task starting..."));
-   
+
+    String essid = getConfigValue(F("wifi.essid"), String());
+    String pwd =   getConfigValue(F("wifi.password"), String());
+
+    WiFi.mode(WIFI_STA);
+    WiFi.softAPdisconnect();
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
 
+    WiFi.begin(essid.c_str(), pwd.c_str());
+    
+    auto macAddress = WiFi.macAddress();
+    logPrintf(SD, F("MAC: %s"), macAddress.c_str());
+
     while (true)
     {
-        String essid = getConfigValue(F("wifi.essid"), String());
-        String pwd =   getConfigValue(F("wifi.password"), String());
-
-        WiFi.mode(WIFI_STA);
-        WiFi.begin(essid.c_str(), pwd.c_str());
-        
-        auto macAddress = WiFi.macAddress();
-        logPrintf(SD, F("MAC: %s"), macAddress.c_str());
+        WiFi.mode(WIFI_STA); 
+        WiFi.begin();
 
         auto timeout = essid.length() ? timeoutMax: 0;
 
@@ -80,19 +84,7 @@ void wifiConnectorTask(void*)
 
         if (timeout == 0)
         {
-            logPrintf(SD, F("Failed to connect! Using AP mode!"));
-            //didn't connect or not configured
-            WiFi.mode(WIFI_AP);
-            WiFi.softAP("esp-display");
-            WiFi.begin();
-
-            sleep(10);
-
-            configureWebServer();
-
-            sleep(120); //sleep for 120 seconds
-
-            WiFi.softAPdisconnect();
+            logPrintf(F("WCT: Retrying..."));
             continue;
         }
 

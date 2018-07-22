@@ -11,7 +11,8 @@
         "*.tcc": "cpp",
         "system_error": "cpp",
         "deque": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "unordered_set": "cpp"
     },
     "terminal.integrated.env.osx": {
         "PATH": "/Users/bbielaws/.platformio/penv/bin:/Users/bbielaws/.platformio/penv:/opt/local/bin:/opt/local/sbin:/Users/bbielaws/mxe/usr/bin:/opt/local/bin:/opt/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/TeX/texbin:/usr/local/MacGPG2/bin:/opt/X11/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Applications/Wireshark.app/Contents/MacOS:/Users/bbielaws/Qt/5.5/clang_64/bin/",

@@ -1,8 +1,19 @@
-#Lines beginning with a # sign are comments
+# Lines beginning with a # sign are comments
 timezone=7200
 userPassword=password
-lhc.enabled=1
-owm.apikey=
-owm.ids=2660646
+
+# WiFi configuration
 wifi.essid=
 wifi.password=
+
+# LHC Status Task
+lhc.enabled=1
+
+# OpenWeatherMap
+owm.apikey=
+owm.ids=2660646
+
+# Fixer.io 
+fio.key=
+fio.from=EUR
+fio.to=CHF

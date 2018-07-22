@@ -48,7 +48,9 @@ void readConfigFromFS()
     while (file.available())
     {   
         auto p = splitLine( file.readStringUntil('\n'));
-
+        if (not p.second.length())
+            continue;
+            
         logPrintf("Config: %s = %s", p.first.c_str(), p.second.c_str());
         configValues[p.first] = p.second;
     }

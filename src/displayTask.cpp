@@ -14,7 +14,7 @@
 #include <afbuffer.h>
 
 DisplayTask::DisplayTask():    
-    Task("DT", &DisplayTask::rtTask, 16384, 30)
+    Task("DT", &DisplayTask::rtTask, 16384, 0)
 {
     addCyclicMessage([](){return getFormattedDateTime("%H:%M");});
 }
