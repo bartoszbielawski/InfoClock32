@@ -87,13 +87,13 @@ void fixerIoTask(void*)
             continue;
         }
 
-        auto convRatio = values[std::string("/root/rates/") + toCurrency]; 
+        String convRatio = values[std::string("/root/rates/") + toCurrency].c_str(); 
         
         String newMsg = fromCurrency;
         newMsg += "->";
         newMsg += toCurrency;
         newMsg += ": ";
-        newMsg += convRatio.c_str();
+        newMsg += convRatio;
 
         fixerioMessage = newMsg;
 

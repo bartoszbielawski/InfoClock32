@@ -77,8 +77,6 @@ void lhcStatusTask(void*)
     vTaskSuspend(NULL);
     logPrintf("LHC: Status Task Starting!");
 
-    sleep(30); //FIXME: remove when connection status arrives
-
     bool enabled = getConfigValue("lhc.enabled", "0").toInt();
     if (!enabled)
     {
@@ -105,7 +103,6 @@ void lhcStatusTask(void*)
             delay(60000);
             continue;
         }
-
 
         //this map will collect values from the XML file for us
         LHCState newLHCStatus;
