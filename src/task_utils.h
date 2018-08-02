@@ -15,6 +15,7 @@ class TaskScheduler
         static void callOnTasks(Task::Flags, std::function<void(Task*)>);
 
         static void addTask(Task* t) {TaskScheduler::tasks.push_back(t);}
+
         struct Register{Register(Task* t) {TaskScheduler::addTask(t);}};
 };
 

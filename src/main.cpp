@@ -7,6 +7,7 @@
 #include <lhcTask.h>
 #include <task_utils.h>
 #include <wifiConnectorTask.h>
+#include <PathConstructor.hpp>
 
 void owmTask(void*);
 void lhcStatusTask(void*);
@@ -15,25 +16,25 @@ void fixerIoTask(void*);
 
 String getWeatherDescription();
 
-TaskScheduler::Register wifiTaskR(new Task("WCT", &wifiConnectorTask));
-TaskScheduler::Register displayTaskR(&dt);
 TaskScheduler::Register serialCommandTaskR(new Task("SCT", &serialCommandTask));
 
 TaskScheduler::Register owmTaskR(new Task("WFT", &owmTask, 8192, 5, Task::CONNECTED));
 TaskScheduler::Register lhcStatusTaskR(new Task("LHC", &lhcStatusTask, 8192, 5, Task::CONNECTED));
-TaskScheduler::Register fixerioTaskR(new Task("FIO", &fixerIoTask, 8192, 4, Task::CONNECTED));
+
+
 void setup() {
     Serial.begin(115200);
     if (not SPIFFS.begin())
         SPIFFS.format();
 
-    dt.addCyclicMessage(getLHCState);
-    dt.addCyclicMessage(getWeatherDescription);
-
     readConfigFromFS();
 
     int timeZoneOffset = getConfigValue("timezone", "0").toInt();
     configTime(timeZoneOffset, 0, "pool.ntp.org", "time.nist.gov", "ntp3.pl");
+
+    TaskScheduler::addTask(&dt);
+    TaskScheduler::addTask(&getWiFiConnectorTask());
+    TaskScheduler::addTask(new Task("FIO", &fixerIoTask, 32768, 4, Task::CONNECTED));
 
     logPrintf("Found %zu tasks...", TaskScheduler::getTasks().size());
 

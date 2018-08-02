@@ -18,13 +18,18 @@ class Task
         void suspend();
         void resume();
 
+        void restart();
+
         TaskHandle_t& getTaskHandle() {return handle;}
         operator TaskHandle_t() const {return handle;}
 
         const char* getName() const {return pcTaskGetTaskName(handle);}
         uint32_t getFlags() const {return flags;}
+
     protected:
-        void _start();
+        void _kill();
+        void _start(const String& name);
+
         TaskFunction_t function;
         size_t stackSize;
         UBaseType_t priority;

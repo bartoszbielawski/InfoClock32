@@ -19,6 +19,7 @@ String getFixerIOMessage()
     return fixerioMessage;
 }
 
+
 void fixerIoTask(void*)
 {
     vTaskSuspend(NULL);
@@ -63,21 +64,37 @@ void fixerIoTask(void*)
         if (httpCode != 200)
         {
             logPrintf(F("FIO: HTTP code: %d"), httpCode);
-            sleep(3600);
+            sleep(180);
             continue;
         }
 
         MapCollector mc;
 
         {
+
+            // auto httpStream = httpClient.getStream();    
+            // while (httpStream.available())
+            // {
+            //     char c = httpStream.read();
+            //     mc.parse(c);
+            //     delay(1);
+            // }
+
+            
             auto httpString = httpClient.getString();
+            httpString.trim();
             for (size_t i = 0; i < httpString.length(); ++i)
             {
-                mc.parse(httpString[i]);
+                mc.parse(httpString[i]);              
             }
         }
 
+        // logPrintf(F("FIO: Done parsing JSON..."));
         auto& values = mc.getValues();
+        // for (const auto& p: values)
+        // {
+        //     logPrintf(F("%s => %s"), p.first.c_str(), p.second.c_str());
+        // }
 
         auto success = values["/root/success"] == "true" ? true: false;
         if (not success)

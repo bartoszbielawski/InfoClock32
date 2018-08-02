@@ -3,6 +3,11 @@
 
 #include <Arduino.h>
 #include <utility>
+#include <map>
+
+using namespace std;
+
+const std::map<String, String> getConfigValues();
 
 void readConfigFromFS();
 std::pair<String, String> splitLine(String&& line);

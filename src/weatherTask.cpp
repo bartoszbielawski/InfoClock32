@@ -16,6 +16,8 @@
 #include <SPIFFS.h>
 #include <webServer.h>
 #include <task_utils.h>
+#include <displayTask.h>
+
 /*
  * 2660646 - Geneva
  * 2659667 - Meyrin
@@ -31,6 +33,7 @@ const static char urlForecastTemplate[] PROGMEM =
 		"http://api.openweathermap.org/data/2.5/forecast?id=%d&APPID=%s&units=metric&cnt=2";
 
 void owmHandleStatus(AsyncWebServerRequest *request);
+String getHTMLWeatherDescription();
 
 /* forecast path
  /root/list/n/main/temp			--temperature
@@ -131,6 +134,7 @@ void owmTask(void*)
         logPrintf(F("OWM: Found %d IDs"), weathers.size());
     }
 
+    dt.addCyclicMessage(getHTMLWeatherDescription);
     getWebServer().on("/owmStatus", &owmHandleStatus);
 
     while (true)

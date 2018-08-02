@@ -5,6 +5,9 @@
 #include <config_utils.h>
 #include <task_utils.h> 
 #include <map>
+#include <algorithm>
+
+using namespace std;
 
 void configureWebServer();
 
@@ -51,9 +54,10 @@ static void callOnDisconnected()
     TaskScheduler::callOnTasks(Task::CONNECTED, [](Task* t){t->suspend();});
 }
 
-void wifiConnectorTask(void*)
+void wifiConnectorTaskFunction(void*)
 {
     vTaskSuspend(NULL);
+    
     logPrintf(F("WiFi task starting..."));
 
     String essid = getConfigValue(F("wifi.essid"), String());
@@ -102,4 +106,11 @@ void wifiConnectorTask(void*)
         logPrintf(SD, F("Lost connection, retrying..."));
         callOnDisconnected();
     }
+}
+
+Task wifiConnectorTask("WCT", &wifiConnectorTaskFunction);
+
+Task& getWiFiConnectorTask()
+{
+    return wifiConnectorTask;
 }

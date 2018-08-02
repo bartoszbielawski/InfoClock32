@@ -1,6 +1,8 @@
 #ifndef WIFICONNECTORTASK_H
 #define WIFICONNECTOTTASK_H
 
-void wifiConnectorTask(void*);
+class Task;
+
+Task& getWiFiConnectorTask();
 
 #endif

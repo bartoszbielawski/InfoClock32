@@ -9,6 +9,8 @@ using namespace std;
 
 static std::map<String, String> configValues;
 
+const std::map<String, String> getConfigValues() {return configValues;}
+
 pair<String, String> splitLine(String&& line)
 {
     pair<String, String> result;

@@ -9,6 +9,7 @@
 #include <SPIFFS.h>
 #include <rtos_utils.h>
 #include <task_utils.h>
+#include <displayTask.h>
 
 static const char pageUrl[] PROGMEM = "http://alicedcs.web.cern.ch/AliceDCS/monitoring/screenshots/rss.xml";
 
@@ -53,7 +54,7 @@ struct LHCState
 
 static LHCState lhcState;
 
-String getLHCState() 
+String getLHCStateString() 
 {
     return lhcState.getDescription();
 }
@@ -75,6 +76,9 @@ void lhcHandleRequest(AsyncWebServerRequest *request)
 void lhcStatusTask(void*)
 {
     vTaskSuspend(NULL);
+
+    dt.addCyclicMessage(&getLHCStateString);
+
     logPrintf("LHC: Status Task Starting!");
 
     bool enabled = getConfigValue("lhc.enabled", "0").toInt();
