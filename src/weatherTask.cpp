@@ -33,7 +33,9 @@ const static char urlForecastTemplate[] PROGMEM =
 		"http://api.openweathermap.org/data/2.5/forecast?id=%d&APPID=%s&units=metric&cnt=2";
 
 void owmHandleStatus(AsyncWebServerRequest *request);
+
 String getHTMLWeatherDescription();
+String getTextWeatherDescription();
 
 /* forecast path
  /root/list/n/main/temp			--temperature
@@ -134,7 +136,7 @@ void owmTask(void*)
         logPrintf(F("OWM: Found %d IDs"), weathers.size());
     }
 
-    dt.addCyclicMessage(getHTMLWeatherDescription);
+    dt.addCyclicMessage(&getTextWeatherDescription);
     getWebServer().on("/owmStatus", &owmHandleStatus);
 
     while (true)
@@ -216,7 +218,19 @@ String getWeatherDescription()
     return result;
 }
 
-String getHTMLWeatherDescription()
+
+/*
+arguments will be:
+    %s - location,
+    %s - temperature now,
+    %s - temperature in 3-6 hours,
+    %s - weather description
+*/
+
+const static char htmlFormat[] = "<tr><td id='h'>%s</td><td id='i'>%s&deg;C (%s&deg;C, %s)</td></tr>";
+const static char plainTextFormat[] = "%s - %s*C (%s*C, %s)"; 
+
+String getFormattedWeatherDescription(const char* fmt)
 {
     char buffer[128];
     String result;
@@ -227,7 +241,7 @@ String getHTMLWeatherDescription()
         if (w.location.length() == 0)
             continue;
 
-        snprintf(buffer, sizeof(buffer), "<tr><td id='h'>%s</td><td id='i'>%s&deg;C (%s&deg;C, %s)</td></tr>",
+        snprintf(buffer, sizeof(buffer), fmt,
             w.location.c_str(),
             String(w.temperature,1).c_str(),
             String(w.temperatureForecast, 1).c_str(),
@@ -237,6 +251,16 @@ String getHTMLWeatherDescription()
     }
 
     return result;
+}
+
+String getHTMLWeatherDescription()
+{
+    return getFormattedWeatherDescription(htmlFormat);
+}
+
+String getTextWeatherDescription()
+{
+   return getFormattedWeatherDescription(plainTextFormat);
 }
 
 void owmHandleStatus(AsyncWebServerRequest *request)

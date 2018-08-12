@@ -16,6 +16,8 @@ class TaskScheduler
 
         static void addTask(Task* t) {TaskScheduler::tasks.push_back(t);}
 
+        static Task* getTaskByName(const String& name);
+
         struct Register{Register(Task* t) {TaskScheduler::addTask(t);}};
 };
 

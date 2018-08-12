@@ -114,7 +114,7 @@ void fixerIoTask(void*)
 
         fixerioMessage = newMsg;
 
-        logPrintf(F("%s"), newMsg.c_str());
+        logPrintf(F("FIO: %s"), newMsg.c_str());
 
         sleep(3600);
     }

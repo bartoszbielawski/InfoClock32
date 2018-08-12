@@ -38,15 +38,6 @@ void serialCommandTask(void*)
             continue;
         }
 
-        if (command == "restartwifi")
-        {
-            logPrintf("CMD: Restarting WCT...");
-            auto& wct = getWiFiConnectorTask();
-            wct.restart();  
-            wct.resume();
-            continue;     
-        }
-
         if (command == "vars")
         {
             for (const auto& p: getConfigValues())
@@ -60,6 +51,7 @@ void serialCommandTask(void*)
         {
             logPrintf(F("CMD: Rebooting device..."));
             ESP.restart();
+            continue;   //not really needed
         }
 
         if (command.startsWith("restart="))
@@ -68,15 +60,16 @@ void serialCommandTask(void*)
             if (!p.second.length())
                 continue;
 
-            for (auto* t: TaskScheduler::getTasks())
+            auto* t = TaskScheduler::getTaskByName(p.second);
+
+            if (not t)
             {
-                String name(t->getName());
-                if (name == p.second)
-                {
-                    t->restart();
-                    t->resume();
-                }
+                logPrintf(F("CMD: Task %s not found!"), p.second.c_str());
+                continue;
             }
+
+            t->restart();
+            t->resume();
             continue;
         }
 

@@ -14,7 +14,7 @@
 #include <afbuffer.h>
 
 DisplayTask::DisplayTask():    
-    Task("DT", &DisplayTask::rtTask, 16384, 0)
+    Task("DT", &DisplayTask::rtTask, 16384, 6)
 {
     addCyclicMessage([](){return getFormattedDateTime("%H:%M");});
 }
@@ -45,6 +45,8 @@ void DisplayTask::rtTask(void* that)
 
     Wire.begin(4,15);
     Adafruit_SSD1306 display(16);
+
+    Wire.setClock(400000);
 
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
 
@@ -97,7 +99,6 @@ void DisplayTask::rtTask(void* that)
 
         if (w > display.width())
         {
-            
             for (int sx = 0; sx < w - display.width() + step; sx += step)
             {
                 copyBitmap(canvas, sx, y, display, 0, 20, display.width(), h);

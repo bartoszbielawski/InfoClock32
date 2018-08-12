@@ -28,6 +28,7 @@ void Task::restart()
 {
     String name = getName();
     _kill();
+    vTaskDelay(1);
     _start(name);
 }
 
