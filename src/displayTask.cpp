@@ -2,6 +2,7 @@
 #include <time.h>
 #include "displayTask.h"
 #include "utils.h"
+#include <rtos_utils.h>
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -25,6 +26,12 @@ void DisplayTask::addCyclicMessage(const MessageProvider& msg)
 }
 
 
+DisplayTask& getDisplayTask()
+{
+    static DisplayTask* dt = new DisplayTask();
+    return *dt;
+}
+
 DisplayTask dt;
 
 void displayTime(Adafruit_GFX& display)
@@ -43,12 +50,9 @@ void DisplayTask::rtTask(void* that)
 
     DisplayTask* o = static_cast<DisplayTask*>(that);
 
-    Wire.begin(4,15);
     Adafruit_SSD1306 display(16);
-
-    Wire.setClock(400000);
-
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+    Wire.setClock(400000);
 
     display.setTextColor(WHITE);  
     while(true)
@@ -100,7 +104,8 @@ void DisplayTask::rtTask(void* that)
         if (w > display.width())
         {
             for (int sx = 0; sx < w - display.width() + step; sx += step)
-            {
+            {   
+                SemaphoreLocker<Semaphore> sl(i2cSemaphore);
                 copyBitmap(canvas, sx, y, display, 0, 20, display.width(), h);
                 display.display();
                 delay(sx == 0 ? 500: 10);
@@ -108,6 +113,7 @@ void DisplayTask::rtTask(void* that)
         }
         else
         {
+            SemaphoreLocker<Semaphore> sl(i2cSemaphore);
             int offset = (display.width() - w) / 2;
             copyBitmap(canvas, 0, y, display, offset, 20, display.width(), h);
             display.display();

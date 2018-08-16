@@ -24,7 +24,7 @@ void fixerIoTask(void*)
 {
     vTaskSuspend(NULL);
 
-    dt.addCyclicMessage(&getFixerIOMessage);
+    getDisplayTask().addCyclicMessage(&getFixerIOMessage);
 
     sleep(10);
 

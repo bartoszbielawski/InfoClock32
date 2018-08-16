@@ -18,7 +18,7 @@ void logPrint(const char* string, uint16_t mode)
     }
     if (mode & D)
     {
-        dt.addMessage(string);
+        getDisplayTask().addMessage(string);
     }
 }
 

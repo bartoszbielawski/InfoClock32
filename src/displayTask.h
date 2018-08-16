@@ -32,6 +32,6 @@ class DisplayTask: public Task
         int currentMessageIndex = 0;
 };
 
-extern DisplayTask dt;
+DisplayTask& getDisplayTask();
 
 #endif //DISPLAY_TASK_H

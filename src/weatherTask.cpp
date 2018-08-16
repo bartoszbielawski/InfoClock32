@@ -136,7 +136,7 @@ void owmTask(void*)
         logPrintf(F("OWM: Found %d IDs"), weathers.size());
     }
 
-    dt.addCyclicMessage(&getTextWeatherDescription);
+    getDisplayTask().addCyclicMessage(&getTextWeatherDescription);
     getWebServer().on("/owmStatus", &owmHandleStatus);
 
     while (true)
@@ -182,6 +182,8 @@ void owmTask(void*)
             w.temperatureForecast = atof(results["/root/list/1/main/temp"].c_str());
             w.description = results["/root/list/1/weather/0/description"].c_str();
             
+            logPrintf(F("OWM: Done reading for id = %d"), w.locationId);
+
             httpClient.end();
         
             sleep(10);
@@ -189,35 +191,6 @@ void owmTask(void*)
         sleep(600);
     }
 }
-
-String getWeatherDescription()
-{
-    char buffer[128];
-    String result;
-    result.reserve(weathers.size() * 64);
-
-    for (const auto& w: weathers)
-    {
-        if (w.location.length() == 0)
-            continue;
-
-        snprintf(buffer, sizeof(buffer), "%s - %s*C (%s*C, %s) --",
-            w.location.c_str(),
-            String(w.temperature,1).c_str(),
-            String(w.temperatureForecast, 1).c_str(),
-            w.description.c_str());
-
-        result += buffer;
-    }
-
-    if (result.length() == 0)
-        return F("No weather forecast available...");
-
-    result.remove(result.length()-2, 2);
-
-    return result;
-}
-
 
 /*
 arguments will be:
@@ -230,7 +203,7 @@ arguments will be:
 const static char htmlFormat[] = "<tr><td id='h'>%s</td><td id='i'>%s&deg;C (%s&deg;C, %s)</td></tr>";
 const static char plainTextFormat[] = "%s - %s*C (%s*C, %s)"; 
 
-String getFormattedWeatherDescription(const char* fmt)
+String getFormattedWeatherDescription(const char* fmt, const char* separator)
 {
     char buffer[128];
     String result;
@@ -248,19 +221,26 @@ String getFormattedWeatherDescription(const char* fmt)
             w.description.c_str());
 
         result += buffer;
+        result += separator;
     }
+
+    if (result.length() == 0)
+        return F("No weather forecast available...");
+
+    int separatorLen = strlen(separator);
+    result.remove(result.length()-separatorLen, separatorLen);
 
     return result;
 }
 
 String getHTMLWeatherDescription()
 {
-    return getFormattedWeatherDescription(htmlFormat);
+    return getFormattedWeatherDescription(htmlFormat, "");
 }
 
 String getTextWeatherDescription()
 {
-   return getFormattedWeatherDescription(plainTextFormat);
+   return getFormattedWeatherDescription(plainTextFormat, " -- ");
 }
 
 void owmHandleStatus(AsyncWebServerRequest *request)

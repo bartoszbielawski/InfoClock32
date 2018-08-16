@@ -77,7 +77,7 @@ void lhcStatusTask(void*)
 {
     vTaskSuspend(NULL);
 
-    dt.addCyclicMessage(&getLHCStateString);
+    getDisplayTask().addCyclicMessage(&getLHCStateString);
 
     logPrintf("LHC: Status Task Starting!");
 

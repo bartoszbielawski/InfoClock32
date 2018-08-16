@@ -1,6 +1,7 @@
 #ifndef RTOS_UTILS
 #define RTOS_UTILS
 
+#include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 
 template <class T>
@@ -36,9 +37,11 @@ struct Semaphore
 
     void lock() {if (handle) xSemaphoreTake(handle, portMAX_DELAY);}
     void unlock() {if (handle) xSemaphoreGive(handle);}
-    void reset() {handle = NULL;}
+    void reset() {handle = nullptr;}
 
     SemaphoreHandle_t handle;
 };
+
+extern Semaphore i2cSemaphore;
 
 #endif //RTOS_UTILS

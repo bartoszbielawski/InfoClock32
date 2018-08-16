@@ -2,6 +2,7 @@
 #define TASK_WRAPPER_H
 
 #include <Arduino.h>
+#include <freertos/projdefs.h>
 
 class Task
 {

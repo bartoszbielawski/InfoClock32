@@ -108,9 +108,8 @@ void wifiConnectorTaskFunction(void*)
     }
 }
 
-Task wifiConnectorTask("WCT", &wifiConnectorTaskFunction);
-
 Task& getWiFiConnectorTask()
 {
-    return wifiConnectorTask;
+    static Task* wifiConnectorTask = new Task("WCT", &wifiConnectorTaskFunction);
+    return *wifiConnectorTask;
 }
