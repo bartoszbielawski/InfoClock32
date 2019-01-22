@@ -50,9 +50,13 @@ void DisplayTask::rtTask(void* that)
 
     DisplayTask* o = static_cast<DisplayTask*>(that);
 
+    Wire.begin(4,15);
+    Wire.setClock(400000);
+
     Adafruit_SSD1306 display(16);
     display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-    Wire.setClock(400000);
+
+    
 
     display.setTextColor(WHITE);  
     while(true)
